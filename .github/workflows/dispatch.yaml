@@ -125,10 +125,10 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           build-args: |
-            APP_NAME=${{ matrix.app_name }}
-            REACT_APP_BASE_URL=${{ env.BASE_URL }}
-            STRIPE_PUBLISHABLE_KEY=${{ env.STRIPE_PUBLISHABLE_KEY }}
-            GOOGLE_APP_ID=${{ env.GOOGLE_APP_ID }}
+            APP_NAME=" matrix.app_name "
+            REACT_APP_BASE_URL="https://github.com/abdullah117765/OptimizatingPipeline.git"
+            STRIPE_PUBLISHABLE_KEY=" env.STRIPE_PUBLISHABLE_KEY"
+            GOOGLE_APP_ID="env.GOOGLE_APP_ID "
           push: true
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
