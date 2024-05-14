@@ -1,5 +1,5 @@
 
-name: Build and Deploy Myformatic
+name: Build and Deploy myoptimize
 on:
  workflow_dispatch:
 jobs:
@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        app_name: [Formatic]
+        app_name: [Optimize]
 
     steps:
       - uses: actions/checkout@v4.1.3
@@ -26,14 +26,14 @@ jobs:
         if: github.ref == 'refs/heads/alpha-dev'
         shell: bash
         run: |
-          echo "BASE_URL=$(echo https://api.sharing-dev.myformatic.com)" >> $GITHUB_ENV
+          echo "BASE_URL=$(echo https://api.sharing-dev.myoptimize.com)" >> $GITHUB_ENV
       - name: Get STRIPE_PUBLISHABLE_KEY (alpha-sharing-dev)
         if: github.ref == 'refs/heads/alpha-dev'
         shell: bash
         run: |
           echo "STRIPE_PUBLISHABLE_KEY=$(echo pk_test_51JZ8LJHam8CyuMKlsDrtFHLsRA3Mwn9KMC5RoyT9KINdpU2EcZut6T2SLFGZBJ1pMGHccky7djs2C5UUq3qzid9i001NZSWHTp)" >> $GITHUB_ENV
-      - name: Get NEXT_PUBLIC_GOOGLE_DEVELOPER_KEY (master)
-        if: github.ref == 'refs/heads/master'
+      - name: Get NEXT_PUBLIC_GOOGLE_DEVELOPER_KEY (main)
+        if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
           echo "NEXT_PUBLIC_GOOGLE_DEVELOPER_KEY=$(echo AIzaSyCGLwjJkFBscBonfevnjcYnU1VeXAF2e6o)" >> $GITHUB_ENV
@@ -42,13 +42,13 @@ jobs:
         shell: bash
         run: |
           echo "NEXT_PUBLIC_GOOGLE_DEVELOPER_KEY=$(echo AIzaSyCGLwjJkFBscBonfevnjcYnU1VeXAF2e6o)" >> $GITHUB_ENV
-      - name: Get GOOGLE_APP_ID (master)
-        if: github.ref == 'refs/heads/master'
+      - name: Get GOOGLE_APP_ID (main)
+        if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
           echo "GOOGLE_APP_ID=$(echo 946939138329-rr50rin38rpeaam8q4ai2in3pq5e45q1.apps.googleusercontent.com)" >> $GITHUB_ENV
       - name: Get GOOGLE_APP_ID (stage/dev/alpha)
-        if: github.ref != 'refs/heads/master'
+        if: github.ref != 'refs/heads/main'
         shell: bash
         run: |
           echo "GOOGLE_APP_ID=$(echo 946939138329-p17gced0hvdkd59hc9s1115o3v24pve2.apps.googleusercontent.com)" >> $GITHUB_ENV
@@ -56,7 +56,7 @@ jobs:
         if: github.ref == 'refs/heads/alpha'
         shell: bash
         run: |
-          echo "BASE_URL=$(echo https://api.sharing.myformatic.com)" >> $GITHUB_ENV
+          echo "BASE_URL=$(echo https://api.sharing.myoptimize.com)" >> $GITHUB_ENV
       - name: Get STRIPE_PUBLISHABLE_KEY (alpha-sharing)
         if: github.ref == 'refs/heads/alpha'
         shell: bash
@@ -66,7 +66,7 @@ jobs:
         if: github.ref == 'refs/heads/dev'
         shell: bash
         run: |
-          echo "BASE_URL=$(echo https://api.dev.myformatic.com)" >> $GITHUB_ENV
+          echo "BASE_URL=$(echo https://api.dev.myoptimize.com)" >> $GITHUB_ENV
       - name: Get STRIPE_PUBLISHABLE_KEY (dev)
         if: github.ref == 'refs/heads/dev'
         shell: bash
@@ -76,19 +76,19 @@ jobs:
         if: github.ref == 'refs/heads/stagging'
         shell: bash
         run: |
-          echo "BASE_URL=$(echo https://api.stage.myformatic.com)" >> $GITHUB_ENV
+          echo "BASE_URL=$(echo https://api.stage.myoptimize.com)" >> $GITHUB_ENV
       - name: Get STRIPE_PUBLISHABLE_KEY (stage)
         if: github.ref == 'refs/heads/stagging'
         shell: bash
         run: |
           echo "STRIPE_PUBLISHABLE_KEY=$(echo pk_test_51JZ8LJHam8CyuMKlsDrtFHLsRA3Mwn9KMC5RoyT9KINdpU2EcZut6T2SLFGZBJ1pMGHccky7djs2C5UUq3qzid9i001NZSWHTp)" >> $GITHUB_ENV
       - name: Get BASE_URL (prod)
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
-          echo "BASE_URL=$(echo https://api.myformatic.com)" >> $GITHUB_ENV
+          echo "BASE_URL=$(echo https://api.myoptimize.com)" >> $GITHUB_ENV
       - name: Get STRIPE_PUBLISHABLE_KEY (prod)
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
           echo "STRIPE_PUBLISHABLE_KEY=$(echo pk_live_51JZ8LJHam8CyuMKlnuOdzQnbrNnxTWk99SUPr14OxpCmCvBqNpk56JuoufofhBOpmmuUOafPgaWFgzzBEgyB4Jp000ZQSSxxQL)" >> $GITHUB_ENV
@@ -105,7 +105,7 @@ jobs:
         id: docker_meta
         uses: docker/metadata-action@v5.5.1
         with:
-          images: ghcr.io/invotyx/myformatic-frontend # list of Docker images to use as base name for tags
+          images: ghcr.io/invotyx/myoptimize-frontend # list of Docker images to use as base name for tags
           tags: |
             type=raw,value=${{ github.ref_name }}
       - name: Set up QEMU
@@ -116,7 +116,7 @@ jobs:
         uses: docker/login-action@v3.1.0
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          username: "mianabdullah"
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v5.3.0
@@ -125,8 +125,8 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           build-args: |
-            APP_NAME=" matrix.app_name "
-            REACT_APP_BASE_URL="https://github.com/abdullah117765/OptimizatingPipeline.git"
+            APP_NAME= ${{matrix.app_name}} 
+            REACT_APP_BASE_URL="http://localhost:3000"
             STRIPE_PUBLISHABLE_KEY=" env.STRIPE_PUBLISHABLE_KEY"
             GOOGLE_APP_ID="env.GOOGLE_APP_ID "
           push: true
