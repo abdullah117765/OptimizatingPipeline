@@ -1,7 +1,7 @@
-
 name: Build and Deploy Myformatic
 on:
   workflow_dispatch:
+
 jobs:
   build:
     if: ${{ github.actor != 'dependabot[bot]' }}
@@ -11,68 +11,48 @@ jobs:
       contents: read
       packages: write
 
-    strategy:
-      matrix:
-        node-version: [18.x]
-        app_name: [Formatic]
-
     steps:
       - uses: actions/checkout@v4.1.3
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v4.0.2
         with:
-          node-version: ${{ matrix.node-version }}
-      - name: Get NEXT_PUBLIC_GOOGLE_DEVELOPER_KEY (main)
-        if: github.ref == 'refs/heads/main'
-        shell: bash
-        run: |
-          echo "NEXT_PUBLIC_GOOGLE_DEVELOPER_KEY=$(echo AIzaSyCGLwjJkFBscBonfevnjcYnU1VeXAF2e6o)" >> $GITHUB_ENV
-      - name: Get GOOGLE_APP_ID (main)
-        if: github.ref == 'refs/heads/main'
-        shell: bash
-        run: |
-          echo "GOOGLE_APP_ID=$(echo 946939138329-rr50rin38rpeaam8q4ai2in3pq5e45q1.apps.googleusercontent.com)" >> $GITHUB_ENV
-      - name: Get GOOGLE_APP_ID (stage/dev/alpha)
-        if: github.ref != 'refs/heads/main'
-        shell: bash
-        run: |
-          echo "GOOGLE_APP_ID=$(echo 946939138329-p17gced0hvdkd59hc9s1115o3v24pve2.apps.googleusercontent.com)" >> $GITHUB_ENV
-      - name: Get BASE_URL (prod)
-        if: github.ref == 'refs/heads/main'
-        shell: bash
-        run: |
-          echo "BASE_URL=$(echo https://api.myformatic.com)" >> $GITHUB_ENV
-      - name: Get STRIPE_PUBLISHABLE_KEY (prod)
-        if: github.ref == 'refs/heads/main'
-        shell: bash
-        run: |
-          echo "STRIPE_PUBLISHABLE_KEY=$(echo pk_live_51JZ8LJHam8CyuMKlnuOdzQnbrNnxTWk99SUPr14OxpCmCvBqNpk56JuoufofhBOpmmuUOafPgaWFgzzBEgyB4Jp000ZQSSxxQL)" >> $GITHUB_ENV
-      # - name: Cache Docker layers
-      #   uses: actions/cache@v4.0.2
-      #   with:
-      #     path: /tmp/.buildx-cache
-      #     key: ${{ runner.os }}-buildx-${{ github.ref_name }}-${{ github.sha }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-buildx-${{ github.ref_name }}
-      #       ${{ runner.os }}-buildx-main
-      #       ${{ runner.os }}-buildx-
-      - name: Docker meta
-        id: docker_meta
-        uses: docker/metadata-action@v5.5.1
-        with:
-          images: ghcr.io/abdullah117765/OptimizatingPipeline          # list of Docker images to use as base name for tags
-          tags: |
-            type=raw,value=${{ github.ref_name }}
+          node-version: 18.x
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.3.0
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3.1.0
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set Environment Variables and Cache Docker layers
+        run: |
+          echo "NEXT_PUBLIC_GOOGLE_DEVELOPER_KEY=$(echo AIzaSyCGLwjJkFBscBonfevnjcYnU1VeXAF2e6o)" >> $GITHUB_ENV
+          echo "GOOGLE_APP_ID=$(echo ${{ github.ref == 'refs/heads/main' && '946939138329-rr50rin38rpeaam8q4ai2in3pq5e45q1.apps.googleusercontent.com' || '946939138329-p17gced0hvdkd59hc9s1115o3v24pve2.apps.googleusercontent.com' }})" >> $GITHUB_ENV
+          echo "BASE_URL=$(echo https://api.myformatic.com)" >> $GITHUB_ENV
+          echo "STRIPE_PUBLISHABLE_KEY=$(echo ${{ github.ref == 'refs/heads/main' && 'pk_live_51JZ8LJHam8CyuMKlnuOdzQnbrNnxTWk99SUPr14OxpCmCvBqNpk56JuoufofhBOpmmuUOafPgaWFgzzBEgyB4Jp000ZQSSxxQL' || '' }})" >> $GITHUB_ENV
+
+          # Cache Docker layers
+          mkdir -p /tmp/.buildx-cache
+          docker pull ghcr.io/abdullah117765/OptimizatingPipeline:latest || true
+          docker buildx create --use
+          docker buildx inspect --bootstrap
+          docker save $(docker history -q ghcr.io/abdullah117765/OptimizatingPipeline:latest | grep -v '<missing>') | gzip > /tmp/.buildx-cache/layers.tar.gz
+          echo "::set-output name=cache-key::${{ runner.os }}-buildx-${{ github.ref_name }}-${{ github.sha }}"
+
+      - name: Docker meta
+        id: docker_meta
+        uses: docker/metadata-action@v5.5.1
+        with:
+          images: ghcr.io/abdullah117765/OptimizatingPipeline
+          tags: |
+            type=raw,value=${{ github.ref_name }}
+
       - name: Build and push
         uses: docker/build-push-action@v5.3.0
         with:
@@ -80,12 +60,13 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           build-args: |
-            APP_NAME=${{ matrix.app_name }}
+            APP_NAME=Formatic
             REACT_APP_BASE_URL="http://localhost:3000"
-            STRIPE_PUBLISHABLE_KEY="env.STRIPE_PUBLISHABLE_KEY "
-            GOOGLE_APP_ID="env.GOOGLE_APP_ID" 
+            STRIPE_PUBLISHABLE_KEY="${{ secrets.STRIPE_PUBLISHABLE_KEY }}"
+            GOOGLE_APP_ID="${{ secrets.GOOGLE_APP_ID }}"
           push: true
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+          cache-key: ${{ steps.cache.outputs.cache-key }}
