@@ -1,7 +1,7 @@
 
-name: Build and Deploy myoptimize
+name: Build and Deploy Myformatic
 on:
- workflow_dispatch:
+  workflow_dispatch:
 jobs:
   build:
     if: ${{ github.actor != 'dependabot[bot]' }}
@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        app_name: [optimize]
+        app_name: [Formatic]
 
     steps:
       - uses: actions/checkout@v4.1.3
@@ -26,7 +26,7 @@ jobs:
         if: github.ref == 'refs/heads/alpha-dev'
         shell: bash
         run: |
-          echo "BASE_URL=$(echo https://api.sharing-dev.myoptimize.com)" >> $GITHUB_ENV
+          echo "BASE_URL=$(echo https://api.sharing-dev.myformatic.com)" >> $GITHUB_ENV
       - name: Get STRIPE_PUBLISHABLE_KEY (alpha-sharing-dev)
         if: github.ref == 'refs/heads/alpha-dev'
         shell: bash
@@ -56,7 +56,7 @@ jobs:
         if: github.ref == 'refs/heads/alpha'
         shell: bash
         run: |
-          echo "BASE_URL=$(echo https://api.sharing.myoptimize.com)" >> $GITHUB_ENV
+          echo "BASE_URL=$(echo https://api.sharing.myformatic.com)" >> $GITHUB_ENV
       - name: Get STRIPE_PUBLISHABLE_KEY (alpha-sharing)
         if: github.ref == 'refs/heads/alpha'
         shell: bash
@@ -66,7 +66,7 @@ jobs:
         if: github.ref == 'refs/heads/dev'
         shell: bash
         run: |
-          echo "BASE_URL=$(echo https://api.dev.myoptimize.com)" >> $GITHUB_ENV
+          echo "BASE_URL=$(echo https://api.dev.myformatic.com)" >> $GITHUB_ENV
       - name: Get STRIPE_PUBLISHABLE_KEY (dev)
         if: github.ref == 'refs/heads/dev'
         shell: bash
@@ -76,7 +76,7 @@ jobs:
         if: github.ref == 'refs/heads/stagging'
         shell: bash
         run: |
-          echo "BASE_URL=$(echo https://api.stage.myoptimize.com)" >> $GITHUB_ENV
+          echo "BASE_URL=$(echo https://api.stage.myformatic.com)" >> $GITHUB_ENV
       - name: Get STRIPE_PUBLISHABLE_KEY (stage)
         if: github.ref == 'refs/heads/stagging'
         shell: bash
@@ -86,7 +86,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
-          echo "BASE_URL=$(echo https://api.myoptimize.com)" >> $GITHUB_ENV
+          echo "BASE_URL=$(echo https://api.myformatic.com)" >> $GITHUB_ENV
       - name: Get STRIPE_PUBLISHABLE_KEY (prod)
         if: github.ref == 'refs/heads/main'
         shell: bash
@@ -105,7 +105,7 @@ jobs:
         id: docker_meta
         uses: docker/metadata-action@v5.5.1
         with:
-          images: ghcr.io/invotyx/myoptimize-frontend # list of Docker images to use as base name for tags
+          images: ghcr.io/invotyx/myformatic-frontend # list of Docker images to use as base name for tags
           tags: |
             type=raw,value=${{ github.ref_name }}
       - name: Set up QEMU
@@ -125,10 +125,10 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           build-args: |
-            APP_NAME= ${{matrix.app_name}} 
+            APP_NAME=${{ matrix.app_name }}
             REACT_APP_BASE_URL="http://localhost:3000"
-            STRIPE_PUBLISHABLE_KEY=" env.STRIPE_PUBLISHABLE_KEY"
-            GOOGLE_APP_ID="env.GOOGLE_APP_ID "
+            STRIPE_PUBLISHABLE_KEY="env.STRIPE_PUBLISHABLE_KEY "
+            GOOGLE_APP_ID="env.GOOGLE_APP_ID" 
           push: true
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
