@@ -18,7 +18,7 @@ FROM base AS builder
 WORKDIR /usr/app
 COPY --from=deps /usr/app/node_modules ./node_modules
 
-LABEL org.opencontainers.image.source https://github.com/Invotyx/myformatic-frontend
+LABEL org.opencontainers.image.source https://github.com/abdullah117765/OptimizatingPipeline.git
 
 ARG APP_NAME
 ARG REACT_APP_BASE_URL
