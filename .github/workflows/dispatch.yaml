@@ -29,15 +29,15 @@ jobs:
             echo "BASE_URL=$(echo https://api.myformatic.com)" >> $GITHUB_ENV
             echo "STRIPE_PUBLISHABLE_KEY=$(echo ${{ github.ref == 'refs/heads/main' && 'pk_live_51JZ8LJHam8CyuMKlnuOdzQnbrNnxTWk99SUPr14OxpCmCvBqNpk56JuoufofhBOpmmuUOafPgaWFgzzBEgyB4Jp000ZQSSxxQL' || '' }})" >> $GITHUB_ENV
   
-      # - name: Cache Docker layers
-      #   uses: actions/cache@v4.0.2
-      #   with:
-      #     path: /tmp/.buildx-cache
-      #     key: ${{ runner.os }}-buildx-${{ github.ref_name }}-${{ github.sha }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-buildx-${{ github.ref_name }}
-      #       ${{ runner.os }}-buildx-main
-      #       ${{ runner.os }}-buildx-
+      - name: Cache Docker layers
+        uses: actions/cache@v4.0.2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ github.ref_name }}
+            ${{ runner.os }}-buildx-main
+            ${{ runner.os }}-buildx-
       - name: Docker meta
         id: docker_meta
         uses: docker/metadata-action@v5.5.1
